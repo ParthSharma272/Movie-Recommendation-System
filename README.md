@@ -20,4 +20,5 @@ A Streamlit-based web application that provides movie recommendations with poste
 
 ---
 
+<img width="1680" alt="Screenshot 2024-12-08 at 6 12 07 PM" src="https://github.com/user-attachments/assets/ef4c300a-ce81-4f9a-a6bc-0be55b1e5a27">
 
