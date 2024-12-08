@@ -1,1 +1,23 @@
-# Movie-Recommendation-System
+# 🎥 Movie Recommendation System
+
+A Streamlit-based web application that provides movie recommendations with posters, ratings, and overviews. Built using machine learning and integrated with The Movie Database (TMDB) API for additional details.
+
+---
+
+## 📚 Features
+- **Movie Recommendations**: Suggests similar movies based on user-selected input.
+- **Movie Posters**: Displays posters fetched from TMDB.
+- **Ratings and Overviews**: Provides movie ratings and a short description for each recommendation.
+- **Interactive UI**: Easy-to-use Streamlit interface with dynamic elements like sliders and search bars.
+
+---
+
+## 🛠️ Tech Stack
+- **Backend**: Python
+- **Frontend**: Streamlit
+- **API**: The Movie Database (TMDB) API
+- **Data Storage**: Pickle files (`movie_dict.pkl` and `similarity.pkl`)
+
+---
+
+
