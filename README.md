@@ -5,6 +5,7 @@
 A Streamlit-based web application that provides movie recommendations with posters, ratings, and overviews. Built using machine learning and integrated with The Movie Database (TMDB) API for additional details.
 
 ---
+link:https://movie-recommendation-system-atsrpceqqfdpfahehjqzbw.streamlit.app/
 
 ## 📚 Features
 - **Movie Recommendations**: Suggests similar movies based on user-selected input.
