@@ -2,11 +2,13 @@ import streamlit as st
 import pickle
 import pandas as pd
 import requests
+import io
 
 def fetch_poster(movie_id):
     response = requests.get('https://api.themoviedb.org/3/movie/{}?api_key=d3ba7241f58f1cd4917197f50cd799b0&language=en-US'.format(movie_id))
     data = response.json()
     return "http://image.tmdb.org/t/p/w500/" + data['poster_path']
+
 def recommend(movie):
     movie_index = movies[movies['title'] == movie].index[0]
     distances = similarity[movie_index]
@@ -18,12 +20,18 @@ def recommend(movie):
         movie_id = movies.iloc[j[0]].movie_id
         recommended_movies.append(movies.iloc[j[0]].title)
         recommended_poster.append(fetch_poster(movie_id))
-    return recommended_movies,recommended_poster
+    return recommended_movies, recommended_poster
 
-movies_dict = pickle.load(open('movie_dict.pkl','rb'))
+# Load movies data
+movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
-similarity = pickle.load(open('similarity.pkl','rb'))
 
+# Fetch similarity.pkl from GitHub release
+similarity_url = "https://github.com/ParthSharma272/Movie-Recommendation-System/releases/download/pkl/similarity.pkl"
+response = requests.get(similarity_url)
+similarity = pickle.load(io.BytesIO(response.content))  # Load the pickle file from the byte content
+
+# Streamlit page config
 st.set_page_config(layout="wide")
 st.title('🎥 Movie Recommendation System')
 st.markdown("Welcome! Select a movie, and we'll recommend others you might like.")
