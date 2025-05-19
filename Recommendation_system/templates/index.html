@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+<head>
+    <title>Movie Recommender</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #121212;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            
+            font-size: 3em;
+            margin: 20px 0;
+            color: #00ffcc;
+        }
+
+        form {
+            background: #1e1e1e;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        label {
+            font-size: 1.2em;
+        }
+
+        select, input[type="submit"] {
+            font-size: 1em;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        select {
+            background-color: #2b2b2b;
+            color: #ffffff;
+        }
+
+        input[type="submit"] {
+            background-color: #00ffcc;
+            color: #000;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #00ccb3;
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .recommendations {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+            padding: 0 20px;
+        }
+
+        .movie {
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 15px;
+            width: 180px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .movie:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+        }
+
+        .movie img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .movie p {
+            font-size: 1em;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            form {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .movie {
+                width: 140px;
+            }
+
+            .movie p {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Movie Recommendation System</h1>
+
+    <form method="post">
+        <label for="movie_name">Select a movie:</label>
+        <select name="movie_name">
+            {% for movie in movie_titles %}
+                <option value="{{ movie }}" {% if selected_movie == movie %}selected{% endif %}>{{ movie }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Recommend">
+    </form>
+
+    {% if recommended_movies %}
+        <h2>Recommended for {{ selected_movie }}:</h2>
+        <div class="recommendations">
+            {% for title, poster in zip(recommended_movies, posters) %}
+                <div class="movie">
+                    <img src="{{ poster }}">
+                    <p>{{ title }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</body>
+</html>
