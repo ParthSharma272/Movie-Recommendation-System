@@ -1,20 +1,57 @@
 from flask import Flask, render_template, request
+import os
 import pickle
+import tempfile
+import time
+
 import pandas as pd
 import requests
-import io
-import os
 
 app = Flask(__name__)
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.abspath(os.path.join(FILE_DIR, os.pardir))
+CACHE_DIR = os.path.join(tempfile.gettempdir(), "movie_reco_cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
+
+RELEASE_BASE = os.environ.get(
+    "MOVIE_RECO_RELEASE_BASE",
+    "https://github.com/ParthSharma272/Movie-Recommendation-System/releases/download/pkl",
+)
+MOVIE_DICT_URL = os.environ.get("MOVIE_RECO_MOVIE_DICT_URL", f"{RELEASE_BASE}/movie_dict.pkl")
+SIMILARITY_URL = os.environ.get("MOVIE_RECO_SIMILARITY_URL", f"{RELEASE_BASE}/similarity.pkl")
 
 def _first_existing(paths):
     for p in paths:
         if os.path.exists(p) and os.path.getsize(p) > 0:
             return p
     return None
+
+
+def _download_with_cache(url: str, filename: str, *, retries: int = 3, timeout: float = 20.0) -> str:
+    """Download url into CACHE_DIR/filename with simple retries and return the path."""
+    dest_path = os.path.join(CACHE_DIR, filename)
+    if os.path.exists(dest_path) and os.path.getsize(dest_path) > 0:
+        return dest_path
+
+    last_err = None
+    for attempt in range(1, retries + 1):
+        try:
+            resp = requests.get(url, timeout=timeout)
+            resp.raise_for_status()
+            tmp_path = dest_path + ".part"
+            with open(tmp_path, "wb") as fh:
+                fh.write(resp.content)
+            os.replace(tmp_path, dest_path)
+            return dest_path
+        except Exception as exc:  # noqa: BLE001 - surface original error message later
+            last_err = exc
+            if attempt < retries:
+                time.sleep(2 ** attempt)
+            else:
+                break
+
+    raise RuntimeError(f"Failed to download {filename} from {url}: {last_err}")
 
 # Load movie data (try local common locations)
 movies_path = _first_existing([
@@ -23,7 +60,7 @@ movies_path = _first_existing([
     'movie_dict.pkl',
 ])
 if not movies_path:
-    raise FileNotFoundError("movie_dict.pkl not found. Place it in the project root or next to app.py")
+    movies_path = _download_with_cache(MOVIE_DICT_URL, 'movie_dict.pkl')
 with open(movies_path, 'rb') as f:
     movies_dict = pickle.load(f)
 movies = pd.DataFrame(movies_dict)
@@ -38,7 +75,7 @@ similarity_path = _first_existing([
     'similarity (1).pkl',
 ])
 if not similarity_path:
-    raise FileNotFoundError("similarity.pkl not found. Place it in the project root or next to app.py")
+    similarity_path = _download_with_cache(SIMILARITY_URL, 'similarity.pkl')
 with open(similarity_path, 'rb') as f:
     similarity = pickle.load(f)
 
