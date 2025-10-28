@@ -170,6 +170,29 @@
             box-shadow: 0 0 18px rgba(57,255,20,.25) inset;
         }
 
+        .chip {
+            position: absolute; top: 10px; left: 10px;
+            padding: 4px 8px; border-radius: 999px;
+            background: rgba(0,0,0,.5);
+            color: var(--text);
+            border: 1px solid #1f2122;
+            font-size: 12px;
+        }
+
+        .fav {
+            position: absolute; bottom: 10px; right: 10px;
+            width: 36px; height: 36px; display: grid; place-items: center;
+            border-radius: 50%; cursor: pointer;
+            border: 1px solid #1f2122;
+            background: rgba(57,255,20,.06);
+            transition: box-shadow .2s ease, border-color .2s ease, transform .1s ease;
+        }
+        .fav:hover { box-shadow: 0 0 16px rgba(57,255,20,.2); }
+        .fav:active { transform: translateY(1px); }
+        .fav svg { width: 18px; height: 18px; fill: transparent; stroke: var(--accent); stroke-width: 2; }
+        .fav.active { border-color: rgba(57,255,20,.7); box-shadow: 0 0 22px rgba(57,255,20,.25), inset 0 0 18px rgba(57,255,20,.15); }
+        .fav.active svg { fill: rgba(57,255,20,.8); stroke: rgba(57,255,20,1); }
+
         .section-title {
             display: flex;
             align-items: center;
@@ -193,7 +216,7 @@
 </head>
 <body>
     <header class="container header">
-        <div class="logo-glow">🎬 Neo Noir Movie Recommender</div>
+        <div class="logo-glow">🎬 Movie Recommendation System</div>
         <div class="tagline">Discover films you’ll love — powered by similarity and a splash of neon.</div>
     </header>
 
@@ -214,22 +237,194 @@
             </div>
         </form>
 
-        {% if recommended_movies %}
+                {% if items %}
             <div class="section-title"><span class="dot"></span> Recommendations for <strong style="color:var(--text);">{{ selected_movie }}</strong></div>
-            <section class="results">
-                {% for title, poster in zip(recommended_movies, posters) %}
-                    <article class="card">
-                        <span class="badge">NEON PICK</span>
-                        <img src="{{ poster }}" alt="Poster for {{ title }}" loading="lazy" />
-                        <div class="title">{{ title }}</div>
-                    </article>
+            <section class="results" id="results">
+                                {% for it in items %}
+                                        <article class="card" tabindex="0" role="button" aria-label="Open details for {{ it.title }}"
+                                            data-title="{{ it.title }}"
+                                            data-poster="{{ it.poster }}"
+                                            data-desc="{{ it.desc }}"
+                                            data-rating="{{ it.rating if it.rating is not none else '' }}"
+                                            data-year="{{ it.year if it.year is not none else '' }}"
+                                            data-genres="{{ (it.genres | join(', ')) if it.genres else '' }}"
+                                            data-runtime="{{ it.runtime if it.runtime is not none else '' }}"
+                                        >
+                                                {% if it.rating %}
+                                                    <span class="badge">⭐ {{ '%.1f' % it.rating }}</span>
+                                                {% endif %}
+                                                {% if it.year %}
+                                                    <span class="chip">{{ it.year }}</span>
+                                                {% endif %}
+                                                <img src="{{ it.poster }}" alt="Poster for {{ it.title }}" loading="lazy" />
+                                                <div class="title">{{ it.title }}</div>
+                                                <button class="fav" title="Toggle favorite" type="button" aria-label="Toggle favorite for {{ it.title }}">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path d="M12 21s-6.716-4.143-9.173-7.26C.61 11.95 1.07 8.89 3.3 7.33c1.808-1.279 4.28-.883 5.7.72L12 11.2l3-3.15c1.42-1.603 3.892-1.999 5.7-.72 2.23 1.56 2.69 4.62.473 6.41C18.716 16.857 12 21 12 21z"/>
+                                                    </svg>
+                                                </button>
+                                        </article>
                 {% endfor %}
             </section>
         {% endif %}
     </main>
 
-    <footer class="container footer">
-        Built with Flask • Dark matte + neon green theme
-    </footer>
+        <!-- Modal Styles -->
+        <style>
+            .modal-backdrop {
+                position: fixed; inset: 0; display: none;
+                background: rgba(0,0,0,.65);
+                backdrop-filter: blur(2px);
+                z-index: 50;
+            }
+            .modal-backdrop.active { display: block; }
+
+            .modal {
+                position: fixed; inset: 0; display: grid; place-items: center; z-index: 60; pointer-events: none;
+            }
+            .modal.active { pointer-events: auto; }
+            .modal .sheet {
+                width: min(900px, 92vw);
+                background: linear-gradient(180deg, rgba(21,22,23,.96), rgba(17,18,19,.98));
+                border: 1px solid rgba(57,255,20,.25);
+                box-shadow: 0 30px 80px rgba(0,0,0,.75), 0 0 0 1px rgba(57,255,20,.08) inset;
+                border-radius: 16px; overflow: hidden; transform: translateY(20px) scale(.98);
+                opacity: 0; transition: transform .18s ease, opacity .18s ease;
+            }
+            .modal.active .sheet { transform: translateY(0) scale(1); opacity: 1; }
+            .sheet .row { display: grid; grid-template-columns: 280px 1fr; gap: 18px; }
+            .sheet img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 2/3; }
+            .sheet .body { padding: 18px 20px 20px; }
+            .sheet .h {
+                display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;
+            }
+            .sheet .h .t { font-size: 22px; font-weight: 800; letter-spacing: .2px; }
+            .sheet .h .x {
+                border: 1px solid rgba(57,255,20,.4); background: rgba(57,255,20,.12); color: var(--text);
+                padding: 6px 10px; border-radius: 10px; cursor: pointer;
+            }
+            .sheet .desc { color: var(--text); opacity: .9; line-height: 1.6; }
+            .sheet .meta { color: var(--muted); font-size: 12px; margin-top: 10px; }
+            @media (max-width: 780px) { .sheet .row { grid-template-columns: 1fr; } }
+        </style>
+
+        <!-- Modal Markup -->
+        <div class="modal-backdrop" id="backdrop" aria-hidden="true"></div>
+        <div class="modal" id="modal" aria-hidden="true" aria-modal="true" role="dialog">
+            <div class="sheet panel">
+                <div class="row">
+                    <div class="media"><img id="mPoster" alt="Poster" /></div>
+                    <div class="body">
+                        <div class="h">
+                            <div class="t" id="mTitle">Title</div>
+                            <button class="x" id="mClose" type="button">Close</button>
+                        </div>
+                        <div class="desc" id="mDesc">Description</div>
+                        <div class="meta" id="mMeta"></div>
+                        <form method="post" style="margin-top:12px">
+                          <input type="hidden" name="movie_name" id="mMoreName" />
+                          <button class="btn-primary" type="submit">🎯 More like this</button>
+                        </form>
+                        <div class="meta">Press Esc or click outside to close</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="container footer">Built with Flask • Click any poster to preview</footer>
+
+        <script>
+            (function(){
+                const results = document.getElementById('results');
+                const modal = document.getElementById('modal');
+                const backdrop = document.getElementById('backdrop');
+                const mTitle = document.getElementById('mTitle');
+                const mDesc = document.getElementById('mDesc');
+                const mPoster = document.getElementById('mPoster');
+                const mClose = document.getElementById('mClose');
+                const mMeta = document.getElementById('mMeta');
+                const mMoreName = document.getElementById('mMoreName');
+
+                function openModal({title, desc, poster, rating, year, genres, runtime}){
+                    mTitle.textContent = title || 'Title';
+                    mDesc.textContent = desc || 'Description unavailable.';
+                    mPoster.src = poster || '';
+                    mPoster.alt = 'Poster for ' + (title || 'movie');
+                    const metaBits = [];
+                    if (rating) metaBits.push(`⭐ ${rating}`);
+                    if (year) metaBits.push(year);
+                    if (runtime) metaBits.push(`${runtime} min`);
+                    if (genres) metaBits.push(genres);
+                    mMeta.textContent = metaBits.join(' • ');
+                    if (mMoreName) mMoreName.value = title || '';
+                    modal.classList.add('active');
+                    backdrop.classList.add('active');
+                    modal.setAttribute('aria-hidden','false');
+                    backdrop.setAttribute('aria-hidden','false');
+                }
+                function closeModal(){
+                    modal.classList.remove('active');
+                    backdrop.classList.remove('active');
+                    modal.setAttribute('aria-hidden','true');
+                    backdrop.setAttribute('aria-hidden','true');
+                }
+
+                backdrop?.addEventListener('click', closeModal);
+                mClose?.addEventListener('click', closeModal);
+                window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
+
+                                // Favorites in localStorage
+                                const FKEY = 'mr_favorites';
+                                function getFavs(){ try { return JSON.parse(localStorage.getItem(FKEY)||'[]'); } catch { return []; } }
+                                function setFavs(arr){ localStorage.setItem(FKEY, JSON.stringify(arr)); }
+                                function isFav(title){ return getFavs().includes(title); }
+                                function toggleFav(title){
+                                    const favs = getFavs();
+                                    const i = favs.indexOf(title);
+                                    if (i>=0) { favs.splice(i,1); } else { favs.push(title); }
+                                    setFavs(favs);
+                                }
+
+                                if(results){
+                                        // Initialize favorite states
+                                        results.querySelectorAll('.card').forEach(card=>{
+                                            const title = card.dataset.title || card.querySelector('.title')?.textContent?.trim();
+                                            const favBtn = card.querySelector('.fav');
+                                            if (favBtn && title && isFav(title)) favBtn.classList.add('active');
+                                        });
+
+                    results.addEventListener('click', (e)=>{
+                        const card = e.target.closest('.card');
+                                                if(!card) return;
+                                                // Heart/Favorite click
+                                                if (e.target.closest('.fav')){
+                                                    const favBtn = e.target.closest('.fav');
+                                                    const title = card.dataset.title || card.querySelector('.title')?.textContent?.trim();
+                                                    if (title){
+                                                        favBtn.classList.toggle('active');
+                                                        toggleFav(title);
+                                                    }
+                                                    e.stopPropagation();
+                                                    return;
+                                                }
+                                                const title = card.dataset.title || card.querySelector('.title')?.textContent?.trim();
+                                                const poster = card.dataset.poster || card.querySelector('img')?.getAttribute('src');
+                                                const desc = card.dataset.desc || card.querySelector('.desc')?.textContent?.trim();
+                                                const rating = card.dataset.rating || '';
+                                                const year = card.dataset.year || '';
+                                                const genres = card.dataset.genres || '';
+                                                const runtime = card.dataset.runtime || '';
+                                                openModal({title, desc, poster, rating, year, genres, runtime});
+                    });
+                    // keyboard accessibility
+                    results.addEventListener('keydown', (e)=>{
+                        if(e.key==='Enter' || e.key===' '){
+                            const card = e.target.closest('.card');
+                            if(card){ e.preventDefault(); card.click(); }
+                        }
+                    });
+                }
+            })();
+        </script>
 </body>
 </html>

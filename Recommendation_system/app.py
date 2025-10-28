@@ -43,44 +43,75 @@ with open(similarity_path, 'rb') as f:
     similarity = pickle.load(f)
 
 
-def fetch_poster(movie_id):
+def fetch_details(movie_id):
+    """Return dict with poster, overview, rating, year, genres, runtime for a TMDB movie id."""
     url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=d3ba7241f58f1cd4917197f50cd799b0&language=en-US"
+    poster = "https://via.placeholder.com/500x750?text=No+Poster"
+    overview = "Description unavailable."
+    rating = None
+    year = None
+    genres = []
+    runtime = None
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
         poster_path = data.get('poster_path')
         if poster_path:
-            return f"http://image.tmdb.org/t/p/w500/{poster_path}"
+            poster = f"http://image.tmdb.org/t/p/w500/{poster_path}"
+        ov = data.get('overview')
+        if isinstance(ov, str) and ov.strip():
+            overview = ov.strip()
+        try:
+            vote = data.get('vote_average')
+            if isinstance(vote, (int, float)):
+                rating = round(float(vote), 1)
+        except Exception:
+            pass
+        rd = data.get('release_date')
+        if isinstance(rd, str) and len(rd) >= 4:
+            year = rd[:4]
+        gs = data.get('genres')
+        if isinstance(gs, list):
+            genres = [g.get('name') for g in gs if isinstance(g, dict) and g.get('name')]
+        rt = data.get('runtime')
+        if isinstance(rt, int) and rt > 0:
+            runtime = rt
     except Exception:
         pass
-    return "https://via.placeholder.com/500x750?text=No+Poster"
+    return {"poster": poster, "overview": overview, "rating": rating, "year": year, "genres": genres, "runtime": runtime}
 
 def recommend(movie):
     movie_index = movies[movies['title'] == movie].index[0]
     distances = similarity[movie_index]
     movies_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
 
-    recommended_movies = []
-    recommended_posters = []
+    items = []
     for i in movies_list:
         movie_id = movies.iloc[i[0]].movie_id
-        recommended_movies.append(movies.iloc[i[0]].title)
-        recommended_posters.append(fetch_poster(movie_id))
-    return recommended_movies, recommended_posters
+        title = movies.iloc[i[0]].title
+        details = fetch_details(movie_id)
+        items.append({
+            "title": title,
+            "poster": details.get("poster"),
+            "desc": details.get("overview"),
+            "rating": details.get("rating"),
+            "year": details.get("year"),
+            "genres": details.get("genres", []),
+            "runtime": details.get("runtime"),
+        })
+    return items
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
     movie_titles = movies['title'].values
     if request.method == 'POST':
         selected_movie = request.form['movie_name']
-        recommended_movies, recommended_posters = recommend(selected_movie)
+        items = recommend(selected_movie)
         return render_template('index.html',
                                movie_titles=movie_titles,
                                selected_movie=selected_movie,
-                               recommended_movies=recommended_movies,
-                               posters=recommended_posters,
-                               zip=zip)
+                               items=items)
     return render_template('index.html', movie_titles=movie_titles)
 
 if __name__ == '__main__':
