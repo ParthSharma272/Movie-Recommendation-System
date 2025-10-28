@@ -1,6 +1,7 @@
 # 🎥 Movie Recommendation System
 
-<img width="1680" alt="App screenshot" src="https://github.com/user-attachments/assets/ef4c300a-ce81-4f9a-a6bc-0be55b1e5a27">
+<img width="1680" height="930" alt="Screenshot 2025-10-28 at 2 07 15 PM" src="https://github.com/user-attachments/assets/cdbac6e5-cfca-4511-b73a-872bda36a22c" />
+<img width="1680" height="927" alt="Screenshot 2025-10-28 at 2 07 44 PM" src="https://github.com/user-attachments/assets/dcebbae6-eaa7-47f3-87dc-ba5939112f84" />
 
 A modern Flask-based web app that recommends movies you’ll love. It pairs a content-based recommendation model with TMDB metadata for posters, ratings, overviews, and more—wrapped in a sleek matte‑black + neon‑green UI.
 
