@@ -1,0 +1,22 @@
+# General OS cruft
+.DS_Store
+Thumbs.db
+
+# Virtual environments
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Large model/data artifacts kept out of Git (use releases or storage)
+similarity*.pkl
+movies.pkl
+movie_dict.pkl
+
+# Vercel / deployment cache
+dotenv*
