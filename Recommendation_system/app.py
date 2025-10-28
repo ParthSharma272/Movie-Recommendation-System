@@ -3,26 +3,58 @@ import pickle
 import pandas as pd
 import requests
 import io
+import os
 
 app = Flask(__name__)
 
-# Load movie data
-movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
+FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.abspath(os.path.join(FILE_DIR, os.pardir))
+
+def _first_existing(paths):
+    for p in paths:
+        if os.path.exists(p) and os.path.getsize(p) > 0:
+            return p
+    return None
+
+# Load movie data (try local common locations)
+movies_path = _first_existing([
+    os.path.join(FILE_DIR, 'movie_dict.pkl'),
+    os.path.join(ROOT_DIR, 'movie_dict.pkl'),
+    'movie_dict.pkl',
+])
+if not movies_path:
+    raise FileNotFoundError("movie_dict.pkl not found. Place it in the project root or next to app.py")
+with open(movies_path, 'rb') as f:
+    movies_dict = pickle.load(f)
 movies = pd.DataFrame(movies_dict)
 
-# Load similarity matrix from GitHub
-similarity = pickle.load(open('similarity.pkl', 'rb'))
+# Load similarity matrix (support common '(1)' filename variant)
+similarity_path = _first_existing([
+    os.path.join(FILE_DIR, 'similarity.pkl'),
+    os.path.join(FILE_DIR, 'similarity (1).pkl'),
+    os.path.join(ROOT_DIR, 'similarity.pkl'),
+    os.path.join(ROOT_DIR, 'similarity (1).pkl'),
+    'similarity.pkl',
+    'similarity (1).pkl',
+])
+if not similarity_path:
+    raise FileNotFoundError("similarity.pkl not found. Place it in the project root or next to app.py")
+with open(similarity_path, 'rb') as f:
+    similarity = pickle.load(f)
 
 
 def fetch_poster(movie_id):
     url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=d3ba7241f58f1cd4917197f50cd799b0&language=en-US"
-    response = requests.get(url)
-    data = response.json()
-    poster_path = data.get('poster_path')
-    if poster_path:
-        return f"http://image.tmdb.org/t/p/w500/{poster_path}"
-    else:
-        return "https://via.placeholder.com/500x750?text=No+Poster"
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        poster_path = data.get('poster_path')
+        if poster_path:
+            return f"http://image.tmdb.org/t/p/w500/{poster_path}"
+    except Exception:
+        pass
+    return "https://via.placeholder.com/500x750?text=No+Poster"
 
 def recommend(movie):
     movie_index = movies[movies['title'] == movie].index[0]

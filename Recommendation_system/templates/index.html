@@ -1,158 +1,235 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Movie Recommender</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * {
-            box-sizing: border-box;
+        :root {
+            --bg: #0b0b0b;               /* matte black */
+            --panel: #111213;            /* deep charcoal */
+            --panel-2: #151617;          /* slightly lighter */
+            --text: #e8ffee;             /* soft mint white */
+            --muted: #9fb4a7;            /* desaturated mint */
+            --accent: #39ff14;           /* neon green */
+            --accent-2: #00ffa3;         /* aqua neon */
+            --shadow: 0 10px 30px rgba(0,0,0,.6);
+            --radius: 14px;
         }
 
+        * { box-sizing: border-box; }
         html, body {
-            margin: 0;
-            padding: 0;
             height: 100%;
+            margin: 0;
+        }
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            color: var(--text);
+            background: radial-gradient(1200px 600px at 20% -10%, rgba(57,255,20,.08), transparent 60%),
+                                    radial-gradient(900px 500px at 120% 20%, rgba(0,255,163,.06), transparent 50%),
+                                    repeating-linear-gradient(0deg, #0b0b0b, #0b0b0b 2px, #0c0c0c 2px, #0c0c0c 4px);
+            min-height: 100%;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+        }
+
+        .container {
             width: 100%;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #121212;
-            color: #ffffff;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px clamp(16px, 4vw, 40px);
+        }
+
+        .header {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-        }
-
-        h1 {
-            
-            font-size: 3em;
-            margin: 20px 0;
-            color: #00ffcc;
-        }
-
-        form {
-            background: #1e1e1e;
-            padding: 20px 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 40px;
-        }
-
-        label {
-            font-size: 1.2em;
-        }
-
-        select, input[type="submit"] {
-            font-size: 1em;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 8px;
-            outline: none;
-        }
-
-        select {
-            background-color: #2b2b2b;
-            color: #ffffff;
-        }
-
-        input[type="submit"] {
-            background-color: #00ffcc;
-            color: #000;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #00ccb3;
-        }
-
-        h2 {
-            font-size: 2em;
-            margin-bottom: 20px;
-            color: #ffffff;
-        }
-
-        .recommendations {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 25px;
-            justify-content: center;
-            padding: 0 20px;
-        }
-
-        .movie {
-            background: #1e1e1e;
-            border-radius: 10px;
-            padding: 15px;
-            width: 180px;
+            gap: 12px;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 12px;
+        }
+        .logo-glow {
+            font-weight: 800;
+            letter-spacing: .3px;
+            font-size: clamp(28px, 4.2vw, 44px);
+            color: var(--text);
+            text-shadow: 0 0 8px rgba(57,255,20,.25), 0 0 24px rgba(57,255,20,.2);
+        }
+        .tagline {
+            color: var(--muted);
+            font-size: clamp(13px, 2vw, 16px);
         }
 
-        .movie:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+        .panel {
+            background: linear-gradient(180deg, rgba(21,22,23,.8), rgba(17,18,19,.9));
+            border: 1px solid #1f2122;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow), 0 0 0 1px rgba(57,255,20,.06) inset;
+            padding: clamp(16px, 3vw, 28px);
+            backdrop-filter: blur(8px);
         }
 
-        .movie img {
+        .search-panel {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 14px;
+            align-items: end;
+            margin: 28px auto 36px;
+            max-width: 920px;
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+        }
+        .label {
+            font-size: 14px;
+            color: var(--muted);
+        }
+        .input {
+            appearance: none;
             width: 100%;
-            border-radius: 8px;
-            margin-bottom: 10px;
+            padding: 12px 14px;
+            background: #0f1011;
+            color: var(--text);
+            border: 1px solid #212325;
+            border-radius: 10px;
+            outline: none;
+            transition: border .2s ease, box-shadow .2s ease, transform .05s ease;
+            box-shadow: inset 0 0 0 1px rgba(57,255,20,.05);
+        }
+        .input:focus {
+            border-color: rgba(57,255,20,.6);
+            box-shadow: 0 0 0 3px rgba(57,255,20,.15), inset 0 0 0 1px rgba(57,255,20,.2);
         }
 
-        .movie p {
-            font-size: 1em;
-            color: #ffffff;
-            margin: 0;
+        .btn-primary {
+            position: relative;
+            border: 1px solid rgba(57,255,20,.6);
+            background: linear-gradient(180deg, rgba(57,255,20,.2), rgba(57,255,20,.08));
+            color: var(--text);
+            padding: 12px 18px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+            box-shadow: 0 0 24px rgba(57,255,20,.12), inset 0 0 20px rgba(57,255,20,.08);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 36px rgba(57,255,20,.18), inset 0 0 28px rgba(57,255,20,.12);
+            border-color: rgba(57,255,20,.8);
+        }
+        .btn-primary:active { transform: translateY(1px); }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 18px;
         }
 
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 2em;
-            }
+        .card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #0f1112, #101213);
+            border: 1px solid #1f2122;
+            box-shadow: var(--shadow), 0 0 0 1px rgba(57,255,20,.05) inset;
+            transform: translateZ(0);
+            transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(57,255,20,.35);
+            box-shadow: 0 16px 40px rgba(0,0,0,.7), 0 0 24px rgba(57,255,20,.12);
+        }
+        .card img {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            display: block;
+            filter: saturate(1.05);
+        }
+        .card .title {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            padding: 12px 12px 14px;
+            background: linear-gradient(180deg, rgba(11,11,11,0) 0%, rgba(11,11,11,.85) 60%, rgba(11,11,11,.95) 100%);
+            border-top: 1px solid rgba(255,255,255,.04);
+            font-size: 14px;
+            letter-spacing: .2px;
+        }
+        .badge {
+            position: absolute;
+            top: 10px; right: 10px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(57,255,20,.16);
+            color: var(--text);
+            font-size: 12px;
+            border: 1px solid rgba(57,255,20,.35);
+            box-shadow: 0 0 18px rgba(57,255,20,.25) inset;
+        }
 
-            form {
-                flex-direction: column;
-                gap: 10px;
-            }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0 16px;
+            color: var(--muted);
+        }
+        .section-title .dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%, var(--accent), transparent 60%);
+            box-shadow: 0 0 14px rgba(57,255,20,.6);
+        }
 
-            .movie {
-                width: 140px;
-            }
+        .footer { color: #7c8b83; font-size: 12px; text-align: center; padding: 28px 0; }
 
-            .movie p {
-                font-size: 0.9em;
-            }
+        /* Mobile tweaks */
+        @media (max-width: 700px) {
+            .search-panel { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <h1>Movie Recommendation System</h1>
+    <header class="container header">
+        <div class="logo-glow">🎬 Neo Noir Movie Recommender</div>
+        <div class="tagline">Discover films you’ll love — powered by similarity and a splash of neon.</div>
+    </header>
 
-    <form method="post">
-        <label for="movie_name">Select a movie:</label>
-        <select name="movie_name">
-            {% for movie in movie_titles %}
-                <option value="{{ movie }}" {% if selected_movie == movie %}selected{% endif %}>{{ movie }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit" value="Recommend">
-    </form>
+    <main class="container">
+        <form method="post" class="panel search-panel" autocomplete="off">
+            <div class="field">
+                <label class="label" for="movie_name">Choose a movie</label>
+                <!-- Switch to input + datalist for sleek typeahead without external JS -->
+                <input list="movies" name="movie_name" id="movie_name" class="input" placeholder="Start typing to search..." value="{{ selected_movie or '' }}" />
+                <datalist id="movies">
+                    {% for movie in movie_titles %}
+                        <option value="{{ movie }}"></option>
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div>
+                <button type="submit" class="btn-primary">⚡ Recommend</button>
+            </div>
+        </form>
 
-    {% if recommended_movies %}
-        <h2>Recommended for {{ selected_movie }}:</h2>
-        <div class="recommendations">
-            {% for title, poster in zip(recommended_movies, posters) %}
-                <div class="movie">
-                    <img src="{{ poster }}">
-                    <p>{{ title }}</p>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+        {% if recommended_movies %}
+            <div class="section-title"><span class="dot"></span> Recommendations for <strong style="color:var(--text);">{{ selected_movie }}</strong></div>
+            <section class="results">
+                {% for title, poster in zip(recommended_movies, posters) %}
+                    <article class="card">
+                        <span class="badge">NEON PICK</span>
+                        <img src="{{ poster }}" alt="Poster for {{ title }}" loading="lazy" />
+                        <div class="title">{{ title }}</div>
+                    </article>
+                {% endfor %}
+            </section>
+        {% endif %}
+    </main>
+
+    <footer class="container footer">
+        Built with Flask • Dark matte + neon green theme
+    </footer>
 </body>
 </html>
