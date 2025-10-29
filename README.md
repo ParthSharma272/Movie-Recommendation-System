@@ -1,7 +1,7 @@
 # 🎥 PlotLine
 
-<img width="1680" height="930" alt="Screenshot 2025-10-28 at 2 07 15 PM" src="https://github.com/user-attachments/assets/cdbac6e5-cfca-4511-b73a-872bda36a22c" />
-<img width="1680" height="927" alt="Screenshot 2025-10-28 at 2 07 44 PM" src="https://github.com/user-attachments/assets/dcebbae6-eaa7-47f3-87dc-ba5939112f84" />
+<img width="1680" height="928" alt="Screenshot 2025-10-30 at 1 29 32 AM" src="https://github.com/user-attachments/assets/13a3a496-e4da-41e5-96c7-cd403bafada0" />
+<img width="1680" height="929" alt="Screenshot 2025-10-30 at 1 29 54 AM" src="https://github.com/user-attachments/assets/8e3ad870-5014-4c2b-a860-1cf4a2ef3aab" />
 
 A modern Flask-based web app that recommends movies you’ll love. It pairs a content-based recommendation model with TMDB metadata for posters, ratings, overviews, and more—wrapped in a sleek matte‑black + neon‑green UI.
 
